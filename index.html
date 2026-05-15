@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>You're Booked — Advortex</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080808;
+    --green: #00D26A;
+    --white: #f0f0f0;
+    --muted: #444;
+    --border: #1a1a1a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* noise overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* green glow top */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(0,210,106,0.12) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+  }
+
+  /* logo */
+  .logo {
+    position: fixed;
+    top: 28px;
+    left: 36px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--white);
+    text-decoration: none;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.1s;
+  }
+
+  .logo span { color: var(--green); }
+
+  /* corner brackets */
+  .bracket {
+    position: fixed;
+    width: 28px;
+    height: 28px;
+    opacity: 0.25;
+  }
+  .bracket-tl { top: 20px; left: 20px; border-top: 1.5px solid var(--green); border-left: 1.5px solid var(--green); }
+  .bracket-tr { top: 20px; right: 20px; border-top: 1.5px solid var(--green); border-right: 1.5px solid var(--green); }
+  .bracket-bl { bottom: 20px; left: 20px; border-bottom: 1.5px solid var(--green); border-left: 1.5px solid var(--green); }
+  .bracket-br { bottom: 20px; right: 20px; border-bottom: 1.5px solid var(--green); border-right: 1.5px solid var(--green); }
+
+  /* check icon */
+  .check-wrap {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 1.5px solid var(--green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.2s;
+    position: relative;
+  }
+
+  .check-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,210,106,0.1) 0%, transparent 70%);
+  }
+
+  .check-wrap svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--green);
+    stroke-width: 2.5;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .check-wrap svg polyline {
+    stroke-dasharray: 40;
+    stroke-dashoffset: 40;
+    animation: drawCheck 0.5s ease forwards 0.7s;
+  }
+
+  /* label */
+  .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.3s;
+  }
+
+  /* heading */
+  h1 {
+    font-size: clamp(36px, 6vw, 68px);
+    font-weight: 800;
+    line-height: 1.0;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.4s;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  /* subtext */
+  .sub {
+    font-size: 16px;
+    font-weight: 400;
+    color: #888;
+    max-width: 440px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.5s;
+  }
+
+  /* divider */
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    margin: 0 auto 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.55s;
+  }
+
+  /* what's next */
+  .next-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #555;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.6s;
+  }
+
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 400px;
+    text-align: left;
+    margin-bottom: 52px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.65s;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: rgba(255,255,255,0.015);
+  }
+
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+    padding-top: 2px;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    font-size: 14px;
+    color: #999;
+    line-height: 1.5;
+  }
+
+  .step-text strong {
+    display: block;
+    color: var(--white);
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  /* cta */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--green);
+    padding: 14px 28px;
+    text-decoration: none;
+    border-radius: 2px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards 0.75s;
+    transition: opacity 0.2s;
+  }
+
+  .cta:hover { opacity: 0.85; }
+
+  /* animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drawCheck {
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bracket bracket-tl"></div>
+<div class="bracket bracket-tr"></div>
+<div class="bracket bracket-bl"></div>
+<div class="bracket bracket-br"></div>
+
+<a class="logo" href="https://calculate.advortex.io">adv<span>o</span>rtex</a>
+
+<div class="wrap">
+  <div class="check-wrap">
+    <svg viewBox="0 0 24 24"><polyline points="4 12 9 17 20 7"/></svg>
+  </div>
+
+  <p class="label">Audit Confirmed</p>
+
+  <h1>You're <em>booked.</em><br>We'll take it<br>from here.</h1>
+
+  <p class="sub">Check your inbox for a calendar invite. Come ready with your Google Ads account access — we'll do the rest.</p>
+
+  <div class="divider"></div>
+
+  <p class="next-label">What happens next</p>
+
+  <div class="steps">
+    <div class="step">
+      <span class="step-num">01</span>
+      <div class="step-text">
+        <strong>Check your email</strong>
+        Confirmation + Google Meet link sent to your inbox.
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">02</span>
+      <div class="step-text">
+        <strong>We audit your account</strong>
+        Brand search waste, pMax structure, NC CPA — we'll find what's bleeding.
+      </div>
+    </div>
+    <div class="step">
+      <span class="step-num">03</span>
+      <div class="step-text">
+        <strong>We show you the fix</strong>
+        On the call, you'll see exactly what we'd do differently and why.
+      </div>
+    </div>
+  </div>
+
+  <a class="cta" href="https://calculate.advortex.io">← Back to Calculator</a>
+</div>
+
+</body>
+</html>
